@@ -14,7 +14,9 @@ public class Application {
 		new fflib_Application.ServiceFactory( 
 			new Map<Type, Type> {
 					ILoanApplicationService.class => LoanApplicationServiceImpl.class,
-					ITaskService.class => TaskServiceImpl.class
+					ITaskService.class => TaskServiceImpl.class,
+					IProductService.class => ProductServiceImpl.class,
+					IEmailService.class => EmailServiceImpl.class
 				});
 
 	// Configure and create the SelectorFactory for this Application

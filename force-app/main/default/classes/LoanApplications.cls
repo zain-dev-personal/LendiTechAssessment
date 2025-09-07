@@ -8,8 +8,8 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
         super(records);
     }
     
-    // 2. Trigger methods Starts
-
+    // Trigger methods Starts
+    // Bulkified trigger method
     // Validate business rules when moving Draft → Submitted
     public override void onBeforeUpdate(Map<Id,SObject> oldMap) {
         Set<Id> borrowerIds = new Set<Id>();
@@ -21,9 +21,6 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
             }       
         }
         
-        if (borrowerIds.isEmpty()) {
-            return;
-        }
         // One query to collect all the Borrower(Contact) Ids for Validation and later use
         Map<Id, Contact> borrowerMap = BorrowerSelector.newInstance().getBorrowerMap(borrowerIds);
 
@@ -34,6 +31,7 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
                         && oldLapp.Status__c == 'Draft'
                         && la.Status__c == 'Submitted';
 
+            
             if (isSubmitting) {
                 // 1) Amount > 0
                 if (la.Amount__c == null || la.Amount__c <= 0) {
@@ -48,10 +46,6 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
 
                 Contact borrower = borrowerMap.get(la.Borrower__c);
                 // 3) Borrower data: Email present, Income > 0, Credit Score present
-                if (la.Borrower__c == null) {
-                    la.addError('Borrower record not found.');
-                    return;
-                }
                 if (borrower.Credit_Score__c == null) {
                     la.addError('Borrower Credit Score is required.');
                 }
@@ -95,13 +89,11 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
             }
         }
         if (!approvedLoans.isEmpty()) {
-            TaskService.prepareDocsTasks(approvedLoans);
+            TaskService.prepareDocsTasks(approvedLoans, 'Prepare Document', 'Loan Application');
         }
     }
 
     //Trigger methods Ends
-
-     
 
     public class Constructor implements fflib_SObjectDomain.IConstructable{
 

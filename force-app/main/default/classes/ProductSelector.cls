@@ -1,5 +1,14 @@
 public inherited sharing class ProductSelector extends fflib_SObjectSelector implements IProductSelector{
     
+    
+
+    public static IProductSelector newInstance(){
+        final boolean includeFieldSetFields = true;
+        final boolean enforceCRUD = true;
+        final boolean enforceFLS = true;
+        return (IProductSelector) Application.Selector.newInstance(Product__c.SObjectType);
+    }
+
     /* 1. sObjectField list */
     public List<Schema.SObjectField> getSObjectFieldList() {
         return new List<Schema.SObjectField>{
@@ -18,10 +27,6 @@ public inherited sharing class ProductSelector extends fflib_SObjectSelector imp
     public Schema.SObjectType getSObjectType(){
 		return Product__c.SObjectType;
 	}
-
-    public static ProductSelector newInstance() {
-        return new ProductSelector();
-    }
   
     public fflib_QueryFactory getQueryFactory() {
         return new fflib_QueryFactory(getSObjectType());
@@ -53,6 +58,7 @@ public inherited sharing class ProductSelector extends fflib_SObjectSelector imp
     public Database.QueryLocator queryLocatorSelectAll(){
         fflib_QueryFactory qf = getQueryFactory();
         qf.selectFields(getSObjectFieldList());
+        qf.setCondition('Base_Rate__c != null');
         return Database.getQueryLocator(qf.toSOQL());
 	}
 

@@ -39,7 +39,7 @@ private class ProductSelectorTest {
     }
 
     @IsTest
-    static void testSelectById_runsExpected() {
+    private static void testSelectById_runsExpected() {
         fflib_ApexMocks mocks = new fflib_ApexMocks();
 
         Product__c p = [SELECT Id, Name, Min_Credit_Score__c, Base_Rate__c
@@ -47,7 +47,7 @@ private class ProductSelectorTest {
                            WHERE Name = 'Test Product1'
                            LIMIT 1];
 
-        ProductSelector product = ProductSelector.newInstance();
+        IProductSelector product = ProductSelector.newInstance();
         
         Test.startTest();
         Product__c got = product.selectById(p.Id);
@@ -60,7 +60,7 @@ private class ProductSelectorTest {
     }
 
     @IsTest
-    static void testSelectById_userFakeId() {
+    private static void negative_testSelectById_useFakeId() {
         fflib_ApexMocks mocks = new fflib_ApexMocks();
 
         ProductSelector mockSel = (ProductSelector) mocks.mock(ProductSelector.class);
@@ -75,14 +75,14 @@ private class ProductSelectorTest {
         System.assertEquals(null, product, 'Expected null for non-existent Product Id');
     }
 
-    @IsTest
-    static void testselectAllProductByBaseRate() {
+    @IsTest(SeeAllData=false)
+    private static void testSelectAllProductByBaseRate() {
         
-        ProductSelector product = ProductSelector.newInstance();
+        IProductSelector product = ProductSelector.newInstance();
         Test.startTest();
         List<Product__c> productsLst = product.selectAllProductByBaseRate();
         Test.stopTest();
-
-        System.assertEquals(true, productsLst.size() != 0); 
+        System.debug('productsLst.size() : ' + productsLst.size());
+        System.assertEquals(true, productsLst.size() == 10); 
     }
 }

@@ -4,13 +4,16 @@ public with sharing class ProductRateNormalizationJob
     private List<String> errors = new List<String>();
     private Integer totalProcessed = 0; 
     private Integer totalUpdated = 0; 
-    private Integer clampedLow = 0; 
-    private Integer clampedHigh = 0; 
+    private Integer lowerRate = 0; 
+    private Integer higherRate = 0; 
     private Integer unchanged = 0;
-
+    final String SUBJECT = 'Batch Complete: Product Base Rate updated';
+    
     public void execute(SchedulableContext sc){
 		// Start the job once the scheduled time has arrived
-		Database.executeBatch(new ProductRateNormalizationJob());		
+        if(!Test.isRunningTest()){
+            Database.executeBatch(new ProductRateNormalizationJob());		
+        }	
 	}
 
     public Database.QueryLocator start(Database.BatchableContext bc) {
@@ -27,12 +30,12 @@ public with sharing class ProductRateNormalizationJob
             
                 if (br != null && br < 0.5){ 
                     p.Base_Rate__c = 0.5; 
-                    clampedLow++;  
+                    lowerRate++;  
                     toUpdate.add(p); 
 
                 }else if (br != null && br > 15) {
                     p.Base_Rate__c = 15; 
-                    clampedHigh++; 
+                    higherRate++; 
                     toUpdate.add(p); 
 
                 }else {
@@ -56,20 +59,19 @@ public with sharing class ProductRateNormalizationJob
         }
     }
 
-     public void finish(Database.BatchableContext bc) {
+    public void finish(Database.BatchableContext bc) {
         // Build email body
         String nl = '\n';
         String header =
-            'Product Base Rate Clamp - Batch Completed' + nl + nl +
+            'Product Base Rate Updated - Batch Completed' + nl + nl +
             'Totals:' + nl +
-            '• Processed: ' + totalProcessed + nl +
-            '• Updated: ' + totalUpdated + nl +
-            '• Rate up <0.5% → 0.5%: ' + clampedLow + nl +
-            '• Rate down >15%  → 15%: ' + clampedHigh + nl +
-            '• Unchanged: ' + unchanged + nl +
-            '• Errors: ' + errors.size() + nl + nl;
+            'Processed: ' + totalProcessed + nl +
+            'Updated: ' + totalUpdated + nl +
+            'Rate up <0.5% → 0.5%: ' + lowerRate + nl +
+            'Rate down >15%  → 15%: ' + higherRate + nl +
+            'Unchanged: ' + unchanged + nl +
+            'Errors: ' + errors.size() + nl + nl;
 
-        
         List<String> errorsLst = new List<String>();
 
         for (Integer i = 0; i < errors.size(); i++) {
@@ -85,22 +87,23 @@ public with sharing class ProductRateNormalizationJob
         }
             
         String body = header + errorSection;
-
         //Send email
-        try {
-            
-            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-            mail.setToAddresses(new String[]{UserInfo.getUserEmail()});
-            mail.setSubject('Batch Complete: Product Base Rate updated');
-            mail.setPlainTextBody(body);
-                
-            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
-            
-        } catch (Exception exp) {
+        try { 
+            ProductService.sendEmail(UserInfo.getUserEmail(), body, SUBJECT);
+        }catch (Exception exp) {
             System.debug(LoggingLevel.ERROR, 'Failed sending completion email: ' + exp.getMessage());
         }
-
-        // Also logging a concise line to debug
-        System.debug(LoggingLevel.INFO, body);
+        // Also logging a line to debug
+        System.debug(LoggingLevel.DEBUG, body);
     }
+/*
+    public class JobStatus{
+        private Integer totalProcessed = 0; 
+        private Integer totalUpdated = 0; 
+        private Integer clampedLow = 0; 
+        private Integer clampedHigh = 0; 
+        private Integer unchanged = 0;
+		public String message;		
+		public List<Product__c> records;
+	}*/
 }

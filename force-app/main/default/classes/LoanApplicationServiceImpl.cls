@@ -1,4 +1,4 @@
-public class LoanApplicationServiceImpl implements ITaskService{
+public class LoanApplicationServiceImpl implements ILoanApplicationService{
 
     /**
      * Bulkified:
