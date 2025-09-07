@@ -1,7 +1,7 @@
 public with sharing class LoanApplicationService {
-    
-    public static void prepareDocsTasks(List<Loan_Application__c> approvedLApps){
-		service().prepareDocsTasks(approvedLApps);
+
+    public static Map<Id, Product__c> getEligibleProductsByContact(Set<Id> contactIds){
+		return service().getEligibleProductsByContact(contactIds);
 	}
 
     private static ILoanApplicationService service(){

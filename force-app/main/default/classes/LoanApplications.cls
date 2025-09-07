@@ -2,21 +2,32 @@
  * Domain class for Loan Applicaton object
  * This class contain the LoanApplication manipulation methods and trigger methods 
  */
-public inherited sharing class LoanApplications extends fflib_SObjectDomain implements ILoanApplications{
+public inherited sharing class LoanApplications extends fflib_SObjectDomain {
     
     public LoanApplications(List<Loan_Application__c> records) {
         super(records);
     }
-
+    
     // 2. Trigger methods Starts
 
     // Validate business rules when moving Draft → Submitted
     public override void onBeforeUpdate(Map<Id,SObject> oldMap) {
-       // Map<Id, Loan_Application__c> oldMap = (Map<Id, Loan_Application__c>) this.getOldMap();
-        Set<Id> productIds = new Set<Id>();
+        Set<Id> borrowerIds = new Set<Id>();
         Boolean isSubmitting = false;
 
-        for (Loan_Application__c la : (List<Loan_Application__c>) records) {
+        for (Loan_Application__c la :(List<Loan_Application__c>) this.records) {
+            if (la.Borrower__c != null) {
+                borrowerIds.add(la.Borrower__c);
+            }       
+        }
+        
+        if (borrowerIds.isEmpty()) {
+            return;
+        }
+        // One query to collect all the Borrower(Contact) Ids for Validation and later use
+        Map<Id, Contact> borrowerMap = BorrowerSelector.newInstance().getBorrowerMap(borrowerIds);
+
+        for (Loan_Application__c la : (List<Loan_Application__c>) this.records) {
             Loan_Application__c oldLapp =  (Loan_Application__c) oldMap.get(la.Id);
 
             isSubmitting = oldLapp != null
@@ -34,77 +45,68 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain impl
                     la.addError('Borrower is required to submit the application.');
                     return;
                 }
+
+                Contact borrower = borrowerMap.get(la.Borrower__c);
                 // 3) Borrower data: Email present, Income > 0, Credit Score present
                 if (la.Borrower__c == null) {
                     la.addError('Borrower record not found.');
                     return;
                 }
-                if (la.Borrower__r.Credit_Score__c == null) {
+                if (borrower.Credit_Score__c == null) {
                     la.addError('Borrower Credit Score is required.');
                 }
-                if (String.isBlank(la.Borrower__r.Email)) {
+                if (String.isBlank(borrower.Email)) {
                     la.addError('Borrower must have an Email.');
                 }
-                if (la.Borrower__r.Annual_Income__c == null || la.Borrower__r.Annual_Income__c <= 0) {
+                if (borrower.Annual_Income__c == null || borrower.Annual_Income__c <= 0) {
                     la.addError('Borrower Annual Income must be greater than 0.');
                 }
-                if (la.Borrower__r.Credit_Score__c == null) {
-                    la.addError('Borrower Credit Score is required.');
-                }
-                if (la.Selected_Product__c == null){
-                    return;
-                }
-                if(la.Selected_Product__r.Min_Credit_Score__c != null && la.Borrower__r.Credit_Score__c != null) {
-                    if (la.Borrower__r.Credit_Score__c < la.Selected_Product__r.Min_Credit_Score__c) {
-                        la.Rejection_Reason__c = 'Borrower does not meet the product minimum credit score.';
-                        la.Status__c = 'Rejected';
-
-                    }else{
-                        borrowerIds.add(la.Borrower__c);
-                    }
-                }
-                
-                borrowerIds.add(la.Borrower__c);
-                productIds.add(la.Selected_Product__c);     
             }
         }// End for
 
         if (isSubmitting) {
+            // Get the eligible products for the borrower
+            Map<Id, Product__c> prdByConLst = LoanApplicationService.getEligibleProductsByContact(borrowerIds);
+            
+            for (Loan_Application__c la : (List<Loan_Application__c>) this.records) {
+                Product__c eligibleProduct = prdByConLst.get(la.Borrower__c);
 
-            List<Contact> bLst = BorrowerSelector.newInstance().selectByIds(borrowerIds);
-
-            if (productIds.size() > 0) {
-                List<Product__c> pLst = ProductSelector.newInstance().selectByIds(productIds);
-                for(Product__c p : pLst){
-                    
+                if (eligibleProduct == null) {
+                    la.Rejection_Reason__c = 'Borrower does not meet the product minimum credit score.';
+                    la.Status__c = 'Rejected';
+                }else{
+                    la.Selected_Product__c  = eligibleProduct.Id;
+                    la.Status__c = 'Approved';
                 }
-                
             }
+            
         }
     }
 
     // Create follow-up Task AFTER update once Loan is Approved
-    public override void onAfterUpdate() {
+    public override void onAfterUpdate(Map<Id,SObject> oldMap) {
         List<Loan_Application__c> approvedLoans = new List<Loan_Application__c>();
 
-        for (Loan_Application__c rec : (List<Loan_Application__c>) Records) {
-            Loan_Application__c oldRec = (Loan_Application__c) Trigger.oldMap.get(rec.Id);
+        for (Loan_Application__c rec : (List<Loan_Application__c>) this.records) {
+            Loan_Application__c oldRec = (Loan_Application__c) oldMap.get(rec.Id);
+
             if (oldRec.Status__c != 'Approved' && rec.Status__c == 'Approved') {
                 approvedLoans.add(rec);
             }
         }
         if (!approvedLoans.isEmpty()) {
-            LoanApplicationService.prepareDocsTasks(approvedLoans);
+            TaskService.prepareDocsTasks(approvedLoans);
         }
     }
 
     //Trigger methods Ends
 
-    public class Constructor implements fflib_IDomainConstructor
-	{
-		public fflib_SObjects construct(List<Object> objectList)
-		{
-			return new LoanApplications((List<SObject>) objectList);
+     
+
+    public class Constructor implements fflib_SObjectDomain.IConstructable{
+
+        public fflib_SObjectDomain construct(List<SObject> sObjectList){
+			return new LoanApplications(sObjectList);
 		}
 	}
 }

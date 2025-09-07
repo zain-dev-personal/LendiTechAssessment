@@ -44,6 +44,30 @@ public inherited sharing class ProductSelector extends fflib_SObjectSelector imp
         return rows.isEmpty() ? null : rows[0];
     }
 
+    public List<Product__c> selectAll() {
+        fflib_QueryFactory qf = getQueryFactory();
+        qf.selectFields(getSObjectFieldList());
+        return Database.query(qf.toSOQL());
+    }
+
+    public Database.QueryLocator queryLocatorSelectAll(){
+        fflib_QueryFactory qf = getQueryFactory();
+        qf.selectFields(getSObjectFieldList());
+        return Database.getQueryLocator(qf.toSOQL());
+	}
+
+    // Best eligible product Order by Base Rate 
+    public List<Product__c> selectAllProductByBaseRate() {
+        fflib_QueryFactory qf = getQueryFactory();
+
+        qf.selectFields(getSObjectFieldList())
+        .addOrdering(Product__c.Base_Rate__c,fflib_QueryFactory.SortOrder.ASCENDING, true)
+        .addOrdering(Product__c.Min_Credit_Score__c,fflib_QueryFactory.SortOrder.DESCENDING);
+        
+        List<Product__c> rows = Database.query(qf.toSOQL());
+        return rows;
+    }
+    /*
     // Best eligible product for a given credit score 
     public Product__c selectBestEligibleProduct(Decimal borrowerCreditScore) {
         String whereClause = 'Min_Credit_Score__c <= :borrowerCreditScore';
@@ -58,4 +82,5 @@ public inherited sharing class ProductSelector extends fflib_SObjectSelector imp
         
         return rows.isEmpty() ? null : rows[0];
     }
+*/
 }

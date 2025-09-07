@@ -50,7 +50,6 @@ public inherited sharing class BorrowerSelector extends fflib_SObjectSelector im
 
     /**
      * Returns a Map<Id, Contact> keyed by Contact Id
-     * for Contacts that have Credit_Score__c populated.
      */
     public Map<Id, Contact> getBorrowerMap(Set<Id> idSet) {
         List<Contact> recordList = selectByIds(idSet);

@@ -1,20 +1,44 @@
-public class LoanApplicationServiceImpl implements ILoanApplicationService{
+public class LoanApplicationServiceImpl implements ITaskService{
 
-    public static void prepareDocsTasks(List<Loan_Application__c> approvedLApps) {
-        fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
-        Date today = Date.today();
+    /**
+     * Bulkified:
+     * - Input: Set of Contact Ids
+     * - Output: Map<ContactId, List<Product__c>> with products where
+     *   Product.Min_Credit_Score__c <= Contact.Credit_Score__c
+     */
+    public Map<Id, Product__c> getEligibleProductsByContact(Set<Id> contactIds) {
+        Map<Id, Product__c> result = new Map<Id, Product__c>();
 
-        for (Loan_Application__c Lapp : approvedLApps) {
-            Task t = new Task();
-            t.Subject = 'Prepare documents';
-            t.WhatId = Lapp.Id;
-            t.OwnerId = Lapp.OwnerId; 
-            t.Priority = 'Normal';
-            t.Type = 'Loan Application';
-            t.ActivityDate = DateUtility.addBusinessDays(today, 2); // add two business days
-            t.Status = 'Not Started';
-            uow.registerNew(t);
+        if (contactIds == null || contactIds.isEmpty()) 
+            return null;
+
+        // 1) Get Borrowers in one queryContacts (Id, Credit_Score__c) in one query
+        List<Contact> contacts = BorrowerSelector.newInstance().selectByIds(contactIds);
+        
+        // Build a map of contact Credit scores for fast lookup
+        Map<Id, Decimal> scoreByBorrowerId = new Map<Id, Decimal>();
+        for (Contact c : contacts) {
+            scoreByBorrowerId.put(c.Id, c.Credit_Score__c);
         }
-        uow.commitWork();
-    }    
+    
+        if (scoreByBorrowerId.isEmpty()) 
+            return null;
+        
+        // 2) Products (ordered by Base rate in one query)
+        List<Product__c> products = ProductSelector.newInstance().selectAllProductByBaseRate();
+        // 3) For each contact, collect all products with Min <= credit score
+        //    Because products are ordered ascending by Base_Rate__c,
+        for (Id contactId : scoreByBorrowerId.keySet()) {
+            Decimal borrowerScore = scoreByBorrowerId.get(contactId);
+
+            for (Product__c eligibleProduct : products) { 
+                if (eligibleProduct.Min_Credit_Score__c <= borrowerScore) {
+                    result.put(contactId, eligibleProduct); 
+                    // products are sorted; no further products will qualify
+                    break;
+                }
+            }
+        }
+        return result;
+    } 
 }

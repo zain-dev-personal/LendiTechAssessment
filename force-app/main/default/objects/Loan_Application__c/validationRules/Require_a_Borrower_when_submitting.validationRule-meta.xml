@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Require_a_Borrower_when_submitting</fullName>
+    <active>false</active>
+    <description>Require a Borrower when submitting</description>
+    <errorConditionFormula>AND(
+  ISPICKVAL(Status__c, &apos;Submitted&apos;),
+  ISBLANK(Borrower__c)
+)</errorConditionFormula>
+    <errorDisplayField>Borrower__c</errorDisplayField>
+    <errorMessage>Borrower is required when submitting the Loan Application.</errorMessage>
+</ValidationRule>
