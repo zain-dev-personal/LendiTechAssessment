@@ -28,7 +28,7 @@ private class EmailServiceTest {
     }
 
     @IsTest
-    static void testSendEmailInvocations() {
+    private static void testSendEmailInvocations() {
         Integer before = Limits.getEmailInvocations();
 
         User runningUser = TestData.createAdminUser();
@@ -43,7 +43,7 @@ private class EmailServiceTest {
     }
 
     @IsTest
-    static void negativeMissingRecipientsThrowsEmailException() {
+    private static void negativeMissingRecipientsThrowsEmailException() {
         String errMessage;
 
         User runningUser = TestData.createAdminUser();
@@ -52,10 +52,8 @@ private class EmailServiceTest {
             try {
                 new EmailServiceImpl().sendEmail(null,'All good. No errors.', 'This should throw.' );
             }catch (EmailException exp) {
-                System.debug('exp---> ' + exp.getMessage());
                 errMessage =  exp.getMessage();
             }catch (Exception exp) {
-                System.debug('exp---> 1' + exp.getMessage());
                 errMessage =  exp.getMessage();
             }
         Test.stopTest();

@@ -96,14 +96,4 @@ public with sharing class ProductRateNormalizationJob
         // Also logging a line to debug
         System.debug(LoggingLevel.DEBUG, body);
     }
-/*
-    public class JobStatus{
-        private Integer totalProcessed = 0; 
-        private Integer totalUpdated = 0; 
-        private Integer clampedLow = 0; 
-        private Integer clampedHigh = 0; 
-        private Integer unchanged = 0;
-		public String message;		
-		public List<Product__c> records;
-	}*/
 }

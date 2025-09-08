@@ -32,7 +32,7 @@ private class BorrowerSelectorTest {
     }
 
     @IsTest
-    static void testselectById_returnsExpected() {
+    private static void testselectByIdReturnsExpected() {
         Contact john = [SELECT Id, Name FROM Contact WHERE Name='John Borrower' LIMIT 1];
 
         Test.startTest();
@@ -46,8 +46,9 @@ private class BorrowerSelectorTest {
         System.assertEquals(720, borrower.Credit_Score__c, 'Credit score should be present');
     }
 
+    //Negative testing by using fake Id
     @IsTest
-    static void testSelectById_userFakeId() {
+    static void testSelectByIdUserFakeId() {
         fflib_ApexMocks mocks = new fflib_ApexMocks();
 
         BorrowerSelector mockSel = (BorrowerSelector) mocks.mock(BorrowerSelector.class);
@@ -62,8 +63,9 @@ private class BorrowerSelectorTest {
         System.assertEquals(null, contact, 'Expected null for non-existent Contact/Borrower Id');
     }
 
+    // Bulk testing
     @IsTest
-    static void testSelectByIds_bulk() {
+    static void testSelectByIdsbulk() {
         
         Contact john = [SELECT Id FROM Contact WHERE FirstName='John' LIMIT 1];
         Contact jane = [SELECT Id FROM Contact WHERE FirstName='Jane' LIMIT 1];
