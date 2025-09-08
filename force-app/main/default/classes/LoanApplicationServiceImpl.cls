@@ -40,5 +40,16 @@ public class LoanApplicationServiceImpl implements ILoanApplicationService{
             }
         }
         return result;
-    } 
+    }
+    
+    public void updateLoanStatus(Set<Id> lAppIds){
+		fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
+
+		IAccounts accounts = (IAccounts) Application.Domain.newInstance( accountIds );
+
+		accounts.updateOpportunityActivity();
+
+		uow.registerDirty(accounts.getRecords());
+		uow.commitWork();
+	}
 }
