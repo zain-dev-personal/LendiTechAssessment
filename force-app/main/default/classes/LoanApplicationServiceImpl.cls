@@ -13,11 +13,11 @@ public class LoanApplicationServiceImpl implements ILoanApplicationService{
             return null;
 
         // 1) Get Borrowers in one queryContacts (Id, Credit_Score__c) in one query
-        List<Contact> contacts = BorrowerSelector.newInstance().selectByIds(contactIds);
+        List<Contact> borrowers = BorrowerSelector.newInstance().selectByIds(contactIds);
         
         // Build a map of contact Credit scores for fast lookup
         Map<Id, Decimal> scoreByBorrowerId = new Map<Id, Decimal>();
-        for (Contact c : contacts) {
+        for (Contact c : borrowers) {
             scoreByBorrowerId.put(c.Id, c.Credit_Score__c);
         }
     

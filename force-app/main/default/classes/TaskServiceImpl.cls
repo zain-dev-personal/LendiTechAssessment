@@ -8,17 +8,22 @@ public inherited sharing class TaskServiceImpl implements ITaskService{
         fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
         Date today = Date.today();
 
-        for (Loan_Application__c loanApp : approvedLApps) {
-            Task taskObj = new Task();
-            taskObj.Subject = subject;
-            taskObj.WhatId = loanApp.Id;
-            taskObj.OwnerId = loanApp.OwnerId; 
-            taskObj.Priority = 'Normal';
-            taskObj.Type = taskType;
-            taskObj.ActivityDate = DateUtility.addBusinessDays(today, 2); // add two business days
-            taskObj.Status = 'Not Started';
-            uow.registerNew(taskObj);
-        }
-        uow.commitWork();
+        try{
+            for (Loan_Application__c loanApp : approvedLApps) {
+                Task taskObj = new Task();
+                taskObj.Subject = subject;
+                taskObj.WhatId = loanApp.Id;
+                taskObj.OwnerId = loanApp.OwnerId; 
+                taskObj.Priority = 'Normal';
+                taskObj.Type = taskType;
+                taskObj.ActivityDate = DateUtility.addBusinessDays(today, 2); // add two business days
+                taskObj.Status = 'Not Started';
+                uow.registerNew(taskObj);
+            }
+            uow.commitWork();
+        }catch(Exception exp){
+            System.debug('exp-->' + exp.getMessage());
+            throw exp;
+        }       
     }   
 }

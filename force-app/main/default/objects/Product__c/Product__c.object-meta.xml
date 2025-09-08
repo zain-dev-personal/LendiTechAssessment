@@ -143,26 +143,23 @@
     <allowInChatterGroups>false</allowInChatterGroups>
     <compactLayoutAssignment>SYSTEM</compactLayoutAssignment>
     <deploymentStatus>Deployed</deploymentStatus>
-    <description>Represents the overall mortgage application record.</description>
     <enableActivities>true</enableActivities>
     <enableBulkApi>true</enableBulkApi>
     <enableFeeds>false</enableFeeds>
-    <enableHistory>true</enableHistory>
+    <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>true</enableReports>
     <enableSearch>true</enableSearch>
     <enableSharing>true</enableSharing>
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
-    <label>Loan Application</label>
+    <label>Product</label>
     <nameField>
-        <displayFormat>Loan-{00000}</displayFormat>
-        <label>Loan Application Number</label>
-        <trackHistory>false</trackHistory>
-        <type>AutoNumber</type>
+        <label>Product Name</label>
+        <type>Text</type>
     </nameField>
-    <pluralLabel>Loan Applications</pluralLabel>
+    <pluralLabel>Products</pluralLabel>
     <searchLayouts></searchLayouts>
-    <sharingModel>Private</sharingModel>
+    <sharingModel>Read</sharingModel>
     <visibility>Public</visibility>
 </CustomObject>
