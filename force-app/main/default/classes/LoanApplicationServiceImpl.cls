@@ -42,14 +42,30 @@ public class LoanApplicationServiceImpl implements ILoanApplicationService{
         return result;
     }
     
-    public void updateLoanStatus(Set<Id> lAppIds){
-		fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
-
-		IAccounts accounts = (IAccounts) Application.Domain.newInstance( accountIds );
-
-		accounts.updateOpportunityActivity();
-
-		uow.registerDirty(accounts.getRecords());
-		uow.commitWork();
+    public List<Loan_Application__c> updateLoanStatus(List<Loan_Application__c> lApps, Map<Id, Product__c> prdByConLst){
+        fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
+        
+        List<Loan_Application__c> approvedLoans = new List<Loan_Application__c>();
+        List<Loan_Application__c> loanToUpdate = new List<Loan_Application__c>();
+            for (Loan_Application__c la : lApps) {
+                Product__c eligibleProduct = prdByConLst.get(la.Borrower__c);
+                Loan_Application__c updateRecord = new Loan_Application__c();
+                if (eligibleProduct == null) {
+                    updateRecord.Id = la.Id;
+                    updateRecord.Rejection_Reason__c = Util.LOAN_APP_REJECTION_REASON;
+                    updateRecord.Status__c = Util.STATUS_REJECTED;
+                }else{
+                    updateRecord.Id = la.Id;
+                    updateRecord.Selected_Product__c = eligibleProduct.Id;
+                    updateRecord.Status__c = Util.STATUS_APPROVED;
+                    approvedLoans.add(la);
+                }
+                loanToUpdate.add(updateRecord);
+            }
+            if (!loanToUpdate.isEmpty()) {
+                uow.registerDirty(loanToUpdate);
+		        uow.commitWork();
+            }
+            return approvedLoans;
 	}
 }

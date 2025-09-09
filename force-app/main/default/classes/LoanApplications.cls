@@ -4,7 +4,6 @@
  */
 public inherited sharing class LoanApplications extends fflib_SObjectDomain {
     
-
     public LoanApplications(List<Loan_Application__c> records) {
         super(records);
     }
@@ -45,31 +44,15 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
         }
         if (isSubmitting) {
             // Get the eligible products for the borrower
-            Map<Id, Product__c> prdByConLst = LoanApplicationService.getEligibleProductsByContact(borrowerIds);
-            List<Loan_Application__c> approvedLoans = new List<Loan_Application__c>();
-            List<Loan_Application__c> loanToUpdate = new List<Loan_Application__c>();
-            for (Loan_Application__c la : (List<Loan_Application__c>) this.records) {
-                Product__c eligibleProduct = prdByConLst.get(la.Borrower__c);
-                Loan_Application__c updateRecord = new Loan_Application__c();
-                if (eligibleProduct == null) {
-                    updateRecord.Id = la.Id;
-                    updateRecord.Rejection_Reason__c = Util.LOAN_APP_REJECTION_REASON;
-                    updateRecord.Status__c = Util.STATUS_REJECTED;
-                }else{
-                    updateRecord.Id = la.Id;
-                    updateRecord.Selected_Product__c = eligibleProduct.Id;
-                    updateRecord.Status__c = Util.STATUS_APPROVED;
-                    approvedLoans.add(la);
-                }
-                loanToUpdate.add(updateRecord);
-            }
-            if (!loanToUpdate.isEmpty()) {
-                update loanToUpdate; // explicit DML required in after context
-            }
-            update loanToUpdate;
+            Map<Id, Product__c> prdByConLst = 
+                    LoanApplicationService.getEligibleProductsByContact(borrowerIds);
+            
+            List<Loan_Application__c> approvedLoans = 
+                    LoanApplicationService.updateLoanStatus((List<Loan_Application__c>)this.records, prdByConLst);
+
             // Create follow-up Task AFTER update once Loan is Approved
             if (!approvedLoans.isEmpty()) {
-            TaskService.prepareDocsTasks(approvedLoans, Util.LOAN_APPLICATION_PREPARE_DOCUMENT, Util.TYPE_LOAN_APPLICATION);
+                TaskService.prepareDocsTasks(approvedLoans, Util.LOAN_APPLICATION_PREPARE_DOCUMENT, Util.TYPE_LOAN_APPLICATION);
             }          
         }
     }

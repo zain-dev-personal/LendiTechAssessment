@@ -9,6 +9,7 @@ public inherited sharing class TaskServiceImpl implements ITaskService{
         Date today = Date.today();
 
         try{
+            List<Task> taskToCreate = new List<Task>();
             for (Loan_Application__c loanApp : approvedLApps) {
                 Task taskObj = new Task();
                 taskObj.Subject = subject;
@@ -18,8 +19,9 @@ public inherited sharing class TaskServiceImpl implements ITaskService{
                 taskObj.Type = taskType;
                 taskObj.ActivityDate = DateUtility.addBusinessDays(today, 2); // add two business days
                 taskObj.Status = 'Not Started';
-                uow.registerNew(taskObj);
+                taskToCreate.add(taskObj);
             }
+            uow.registerNew(taskToCreate);
             uow.commitWork();
         }catch(Exception exp){
             System.debug('exp-->' + exp.getMessage());
