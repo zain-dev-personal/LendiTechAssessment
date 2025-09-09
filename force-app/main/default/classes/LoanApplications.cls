@@ -9,7 +9,7 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
     }
     
     // Trigger methods Starts
-    // Before Validatonn
+    // Before Validation
     public override void onValidate(Map<Id,SObject> oldMap) {
         for (Loan_Application__c la : (List<Loan_Application__c>) this.records) {
             Loan_Application__c oldLapp =  (Loan_Application__c) oldMap.get(la.Id);
@@ -29,14 +29,11 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
         Set<Id> borrowerIds = new Set<Id>();
         Boolean isSubmitting = false;
 
-        for (Loan_Application__c la :(List<Loan_Application__c>) this.records) {
+        for (Loan_Application__c la : (List<Loan_Application__c>) this.records) {
             if (la.Borrower__c != null) {
                 borrowerIds.add(la.Borrower__c);
-            }       
-        }
-        for (Loan_Application__c la : (List<Loan_Application__c>) this.records) {
+            } 
             Loan_Application__c oldLapp =  (Loan_Application__c) oldMap.get(la.Id);
-
             isSubmitting = oldLapp != null
                         && oldLapp.Status__c == Util.STATUS_DRAFT
                         && la.Status__c == Util.STATUS_SUBMITTED;
