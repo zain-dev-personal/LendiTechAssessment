@@ -39,9 +39,7 @@ private class ProductSelectorTest {
     }
 
     @IsTest
-    private static void testSelectById_runsExpected() {
-        fflib_ApexMocks mocks = new fflib_ApexMocks();
-
+    private static void testSelectByIdRunsExpected() {
         Product__c p = [SELECT Id, Name, Min_Credit_Score__c, Base_Rate__c
                            FROM Product__c
                            WHERE Name = 'Test Product1'
@@ -60,7 +58,7 @@ private class ProductSelectorTest {
     }
 
     @IsTest
-    private static void negative_testSelectById_useFakeId() {
+    private static void negativetestSelectByIdUseFakeId() {
         fflib_ApexMocks mocks = new fflib_ApexMocks();
 
         ProductSelector mockSel = (ProductSelector) mocks.mock(ProductSelector.class);
