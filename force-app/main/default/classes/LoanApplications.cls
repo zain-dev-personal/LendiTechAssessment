@@ -34,7 +34,6 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
                 borrowerIds.add(la.Borrower__c);
             }       
         }
-        
         for (Loan_Application__c la : (List<Loan_Application__c>) this.records) {
             Loan_Application__c oldLapp =  (Loan_Application__c) oldMap.get(la.Id);
 
