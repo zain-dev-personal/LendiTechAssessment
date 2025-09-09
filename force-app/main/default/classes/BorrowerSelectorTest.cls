@@ -31,6 +31,7 @@ private class BorrowerSelectorTest {
         };
     }
 
+
     @IsTest
     private static void testselectByIdReturnsExpected() {
         Contact john = [SELECT Id, Name FROM Contact WHERE Name='John Borrower' LIMIT 1];
@@ -48,7 +49,7 @@ private class BorrowerSelectorTest {
 
     //Negative testing by using fake Id
     @IsTest
-    static void testSelectByIdUserFakeId() {
+    static void negativeSelectByIdUserFakeId() {
         fflib_ApexMocks mocks = new fflib_ApexMocks();
 
         BorrowerSelector mockSel = (BorrowerSelector) mocks.mock(BorrowerSelector.class);
