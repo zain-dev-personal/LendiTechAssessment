@@ -4,7 +4,7 @@ public inherited sharing class TaskServiceImpl implements ITaskService{
     * @param List<Loan_Application__c> approvedLApps
     * @return void
     */
-    public static void prepareDocsTasks(List<Loan_Application__c> approvedLApps, String subject, String taskType) {
+    public static List<Task> prepareDocsTasks(List<Loan_Application__c> approvedLApps, String subject, String taskType) {
         fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
         Date today = Date.today();
 
@@ -21,8 +21,7 @@ public inherited sharing class TaskServiceImpl implements ITaskService{
                 taskObj.Status = 'Not Started';
                 taskToCreate.add(taskObj);
             }
-            uow.registerNew(taskToCreate);
-            uow.commitWork();
+            return taskToCreate;
         }catch(Exception exp){
             System.debug('exp-->' + exp.getMessage());
             throw exp;

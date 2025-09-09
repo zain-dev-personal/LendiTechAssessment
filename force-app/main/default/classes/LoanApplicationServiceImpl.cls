@@ -47,30 +47,34 @@ public class LoanApplicationServiceImpl implements ILoanApplicationService{
      * - If there is no eligible product for the borrower, the loan application will be rejected and rejection reason is set
      * - If there is an eligible product for the borrower, the loan application will be approved and Product is set
      */
-    public List<Loan_Application__c> updateLoanStatus(List<Loan_Application__c> lApps, Map<Id, Product__c> prdByConLst){
+    public void updateLoanStatus(List<Loan_Application__c> lApps, Map<Id, Product__c> prdByConLst){
         fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
         
         List<Loan_Application__c> approvedLoans = new List<Loan_Application__c>();
         List<Loan_Application__c> loanToUpdate = new List<Loan_Application__c>();
-            for (Loan_Application__c la : lApps) {
-                Product__c eligibleProduct = prdByConLst.get(la.Borrower__c);
-                Loan_Application__c updateRecord = new Loan_Application__c();
-                if (eligibleProduct == null) {
-                    updateRecord.Id = la.Id;
-                    updateRecord.Rejection_Reason__c = Util.LOAN_APP_REJECTION_REASON;
-                    updateRecord.Status__c = Util.STATUS_REJECTED;
-                }else{
-                    updateRecord.Id = la.Id;
-                    updateRecord.Selected_Product__c = eligibleProduct.Id;
-                    updateRecord.Status__c = Util.STATUS_APPROVED;
-                    approvedLoans.add(la);
-                }
-                loanToUpdate.add(updateRecord);
+        for (Loan_Application__c la : lApps) {
+            Product__c eligibleProduct = prdByConLst.get(la.Borrower__c);
+            Loan_Application__c updateRecord = new Loan_Application__c();
+            if (eligibleProduct == null) {
+                updateRecord.Id = la.Id;
+                updateRecord.Rejection_Reason__c = Util.LOAN_APP_REJECTION_REASON;
+                updateRecord.Status__c = Util.STATUS_REJECTED;
+            }else{
+                updateRecord.Id = la.Id;
+                updateRecord.Selected_Product__c = eligibleProduct.Id;
+                updateRecord.Status__c = Util.STATUS_APPROVED;
+                approvedLoans.add(la);
             }
-            if (!loanToUpdate.isEmpty()) {
-                uow.registerDirty(loanToUpdate);
-		        uow.commitWork();
-            }
-            return approvedLoans;
+            loanToUpdate.add(updateRecord);
+        }
+        if (!loanToUpdate.isEmpty()) {
+            // Create follow-up Task AFTER update once Loan is Approved
+            List<Task>  taskToCreate = TaskService.prepareDocsTasks(approvedLoans, 
+                            Util.LOAN_APPLICATION_PREPARE_DOCUMENT, Util.TYPE_LOAN_APPLICATION);
+
+            uow.registerNew(taskToCreate);
+            uow.registerDirty(loanToUpdate);
+            uow.commitWork();
+        }
 	}
 }

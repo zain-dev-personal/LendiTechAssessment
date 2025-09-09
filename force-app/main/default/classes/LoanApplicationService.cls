@@ -4,8 +4,8 @@ public with sharing class LoanApplicationService {
 		return service().getEligibleProductsByContact(contactIds);
 	}
 
-    public static List<Loan_Application__c> updateLoanStatus(List<Loan_Application__c> lApps, Map<Id, Product__c> prdByConLst){
-		return service().updateLoanStatus(lApps, prdByConLst);
+    public static void updateLoanStatus(List<Loan_Application__c> lApps, Map<Id, Product__c> prdByConLst){
+		service().updateLoanStatus(lApps, prdByConLst);
 	}
 
     private static ILoanApplicationService service(){

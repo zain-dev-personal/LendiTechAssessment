@@ -11,16 +11,18 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
     // Trigger methods Starts
     // Before Validation
     public override void onValidate(Map<Id,SObject> oldMap) {
+        Boolean isSubmitting = false;
         for (Loan_Application__c la : (List<Loan_Application__c>) this.records) {
             Loan_Application__c oldLapp =  (Loan_Application__c) oldMap.get(la.Id);
 
-            Boolean isSubmitting = oldLapp != null
+            isSubmitting = oldLapp != null
                         && oldLapp.Status__c == Util.STATUS_DRAFT
                         && la.Status__c == Util.STATUS_SUBMITTED;
-            if (isSubmitting) {
-                LoanApplicationValidator.handleSubmission((List<Loan_Application__c>) this.records);
-            }
         }
+        if (isSubmitting) {
+            LoanApplicationValidator.handleSubmission((List<Loan_Application__c>) this.records);
+        }
+        
     }
 
     // Bulkified trigger method
@@ -40,16 +42,9 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
         }
         if (isSubmitting) {
             // Get the eligible products for the borrower
-            Map<Id, Product__c> prdByConLst = 
-                    LoanApplicationService.getEligibleProductsByContact(borrowerIds);
-            
-            List<Loan_Application__c> approvedLoans = 
-                    LoanApplicationService.updateLoanStatus((List<Loan_Application__c>)this.records, prdByConLst);
-
-            // Create follow-up Task AFTER update once Loan is Approved
-            if (!approvedLoans.isEmpty()) {
-                TaskService.prepareDocsTasks(approvedLoans, Util.LOAN_APPLICATION_PREPARE_DOCUMENT, Util.TYPE_LOAN_APPLICATION);
-            }          
+            Map<Id, Product__c> prdByConLst = LoanApplicationService.getEligibleProductsByContact(borrowerIds);
+            // Approve or Reject the load application and create a followup Task if Loan is Approved 
+            LoanApplicationService.updateLoanStatus((List<Loan_Application__c>)this.records, prdByConLst);       
         }
     }
     //Trigger methods Ends
