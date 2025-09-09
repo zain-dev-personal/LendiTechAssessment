@@ -1,6 +1,4 @@
 public inherited sharing class ProductSelector extends fflib_SObjectSelector implements IProductSelector{
-    
-    
 
     public static IProductSelector newInstance(){
         final boolean includeFieldSetFields = true;
@@ -73,20 +71,4 @@ public inherited sharing class ProductSelector extends fflib_SObjectSelector imp
         List<Product__c> rows = Database.query(qf.toSOQL());
         return rows;
     }
-    /*
-    // Best eligible product for a given credit score 
-    public Product__c selectBestEligibleProduct(Decimal borrowerCreditScore) {
-        String whereClause = 'Min_Credit_Score__c <= :borrowerCreditScore';
-        fflib_QueryFactory qf = getQueryFactory();
-
-        qf.selectFields(getSObjectFieldList())
-        .setCondition(whereClause)
-        .addOrdering(Product__c.Base_Rate__c,fflib_QueryFactory.SortOrder.ASCENDING, true)
-        .addOrdering(Product__c.Min_Credit_Score__c,fflib_QueryFactory.SortOrder.DESCENDING)
-        .setLimit(1);
-        List<Product__c> rows = Database.query(qf.toSOQL());
-        
-        return rows.isEmpty() ? null : rows[0];
-    }
-*/
 }
