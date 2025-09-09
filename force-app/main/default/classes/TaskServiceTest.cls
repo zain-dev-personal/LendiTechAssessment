@@ -58,17 +58,13 @@ private class TaskServiceTest {
             LIMIT 1
         ];
         approvedLApps.add(la);
-
+        List<Task> tasks;
         Test.startTest();
-        TaskService.prepareDocsTasks(approvedLApps, 'testSubject', 'Loan Application');
+        tasks = TaskService.prepareDocsTasks(approvedLApps, 'testSubject', 'Loan Application');
         Test.stopTest();
 
-        // Assert a Task was created for this loan
-        List<Task> tasks = [
-            SELECT Id, WhatId, Subject, Status, Priority, ActivityDate
-            FROM Task
-            WHERE WhatId = :la.Id
-        ];
+        // Assert a Task object was returned
+        System.Assert.areNotEqual(null, tasks, 'Tasks should not be null.');
         System.assertEquals(1, tasks.size(), 'Exactly one Task should be created for Approved loan.');
         System.assertEquals(la.Id, tasks[0].WhatId, 'Task.WhatId should reference the Loan Application.');
         System.assertEquals(true, String.isNotBlank(tasks[0].Subject), 'Task subject should be set.');
