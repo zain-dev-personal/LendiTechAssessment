@@ -42,6 +42,11 @@ public class LoanApplicationServiceImpl implements ILoanApplicationService{
         return result;
     }
     
+    /**
+     * Update the Loan Status
+     * - If there is no eligible product for the borrower, the loan application will be rejected and rejection reason is set
+     * - If there is an eligible product for the borrower, the loan application will be approved and Product is set
+     */
     public List<Loan_Application__c> updateLoanStatus(List<Loan_Application__c> lApps, Map<Id, Product__c> prdByConLst){
         fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
         
