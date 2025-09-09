@@ -22,11 +22,6 @@
 @isTest
 private class EmailServiceTest {
 
-    @TestSetup
-    static void setupData() {
-        TestData.createAdminUser();
-    }
-
     @IsTest
     private static void testSendEmailInvocations() {
         Integer before = Limits.getEmailInvocations();
