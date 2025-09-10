@@ -21,8 +21,7 @@ public inherited sharing class LoanApplications extends fflib_SObjectDomain {
         }
         if (isSubmitting) {
             LoanApplicationValidator.handleSubmission((List<Loan_Application__c>) this.records);
-        }
-        
+        }      
     }
 
     // Bulkified trigger method

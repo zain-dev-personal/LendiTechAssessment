@@ -2,9 +2,9 @@ public class LoanApplicationServiceImpl implements ILoanApplicationService{
 
     /**
      * Bulkified:
-     * - Input: Set of Contact Ids
-     * - Output: Map<ContactId, List<Product__c>> with products where
-     *   Product.Min_Credit_Score__c <= Contact.Credit_Score__c
+     * Input: Set of Contact Ids
+     * Output: Map<ContactId, List<Product__c>> with products where
+     * Product.Min_Credit_Score__c <= Contact.Credit_Score__c
      */
     public Map<Id, Product__c> getEligibleProductsByContact(Set<Id> contactIds) {
         Map<Id, Product__c> result = new Map<Id, Product__c>();
@@ -44,8 +44,8 @@ public class LoanApplicationServiceImpl implements ILoanApplicationService{
     
     /**
      * Update the Loan Status
-     * - If there is no eligible product for the borrower, the loan application will be rejected and rejection reason is set
-     * - If there is an eligible product for the borrower, the loan application will be approved and Product is set
+     * If there is no eligible product for the borrower, the loan application will be rejected and rejection reason is set
+     * If there is an eligible product for the borrower, the loan application will be approved and Product is set
      */
     public void updateLoanStatus(List<Loan_Application__c> lApps, Map<Id, Product__c> prdByConLst){
         fflib_ISObjectUnitOfWork uow = Application.UnitOfWork.newInstance();
