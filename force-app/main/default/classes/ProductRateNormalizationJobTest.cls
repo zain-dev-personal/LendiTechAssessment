@@ -46,6 +46,24 @@ private class ProductRateNormalizationJobTest {
             ));
         }
 
+        // Base Rate: Base_Rate__c = 15
+        for (Integer i = 1; i <= 6; i++) {
+            testProduct.add(new Product__c(
+                Name = 'HIGH-' + i,
+                Min_Credit_Score__c = 600,
+                Base_Rate__c = 15 // is equal 15
+            ));
+        }
+
+        // Base_Rate__c = 0.5
+        for (Integer i = 1; i <= 6; i++) {
+            testProduct.add(new Product__c(
+                Name = 'HIGH-' + i,
+                Min_Credit_Score__c = 600,
+                Base_Rate__c = 0.5 // is equal 0.5
+            ));
+        }
+
         // Higher Base Rate: Base_Rate__c = null for negative testing
         for (Integer i = 1; i <= 6; i++) {
             testProduct.add(new Product__c(
@@ -58,11 +76,12 @@ private class ProductRateNormalizationJobTest {
     }
 
     @IsTest(SeeAllData=false)
-    static void testAdjustRates_and_sendsEmail() {
+    private static void testAdjustRatesAndSendsEmail() {
         // Gather Ids for assertions
         Set<Id> lowIds = new Set<Id>();
         Set<Id> highIds = new Set<Id>();
-        
+        Set<Id> unchLowIds = new Set<Id>();
+        Set<Id> unchHighIds = new Set<Id>();
         // Ensure we have at least one active admin with an email address
         User runningUser = TestData.createAdminUser();
         System.runAs(runningUser) {
@@ -76,9 +95,17 @@ private class ProductRateNormalizationJobTest {
                 if (p.Base_Rate__c > 15){
                     highIds.add(p.Id);
                 }
+                if (p.Base_Rate__c == 15){
+                    unchHighIds.add(p.Id);
+                }
+                if (p.Base_Rate__c == 0.5){
+                    unchLowIds.add(p.Id);
+                }
             }
             System.assertEquals(12, lowIds.size(),  'Expected 12 Low Base Rate');
             System.assertEquals(12, highIds.size(), 'Expected 12 High Base Rate');
+            System.assertEquals(6, unchHighIds.size(), 'Expected 6 records with unchanged Base Rate of 15');
+            System.assertEquals(6, unchLowIds.size(), 'Expected 6 records with unchanged Base Rate of 0.5');
 
             // Track email sends before
             Integer beforeEmails = Limits.getEmailInvocations();
@@ -92,13 +119,19 @@ private class ProductRateNormalizationJobTest {
         // Assert Base Rate
         Map<Id, Product__c> baseRateAfter = new Map<Id, Product__c>([SELECT Id, Name, Base_Rate__c
             FROM Product__c
-            WHERE Id IN :lowIds OR Id IN :highIds]);
-
+            WHERE Id IN :lowIds OR Id IN :highIds OR Id IN :unchHighIds OR Id IN :unchLowIds]);
+        
         for (Id idLow : lowIds) {
             System.assertEquals(0.5, baseRateAfter.get(idLow).Base_Rate__c,'Lower Base Rate must be clamped to 0.5: ');
         }
         for (Id idHigh : highIds) {
             System.assertEquals(15, baseRateAfter.get(idHigh).Base_Rate__c, 'Higher Base Rate must be adjusted to 15');
+        }
+        for (Id idUnChHigh : unchHighIds) { // Was and still = 15
+            System.assertEquals(15, baseRateAfter.get(idUnChHigh).Base_Rate__c, 'Base Rate is not adjusted');
+        }
+        for (Id idUnChLow : unchLowIds) { // Was and still = 0.5
+            System.assertEquals(0.5, baseRateAfter.get(idUnChLow).Base_Rate__c, 'Base Rate is not adjusted');
         }
 
         // Verify Email Sending
@@ -109,7 +142,7 @@ private class ProductRateNormalizationJobTest {
     }
 
     @IsTest(SeeAllData=false)
-    static void testCheckBaseRates_afterBatch() {
+    private static void testCheckBaseRatesAfterBatch() {
         Test.startTest();
         Database.executeBatch(new ProductRateNormalizationJob());
         Test.stopTest();
